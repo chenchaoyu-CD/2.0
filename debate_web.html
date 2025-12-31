@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>立场魔方 - 思辨训练在线测试</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .config-section {
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .config-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .config-label {
+            font-weight: bold;
+            color: #333;
+            min-width: 80px;
+        }
+
+        .config-input {
+            flex: 1;
+            min-width: 200px;
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .config-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .config-select {
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+            min-width: 120px;
+        }
+
+        .config-select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .config-button {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .config-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .status-message {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            display: none;
+        }
+
+        .status-message.success {
+            display: block;
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-message.error {
+            display: block;
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status-message.info {
+            display: block;
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .chat-container {
+            padding: 20px;
+            min-height: 400px;
+            max-height: 600px;
+            overflow-y: auto;
+            background: #fafafa;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .message.ai .message-avatar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin-right: 12px;
+        }
+
+        .message.user .message-avatar {
+            background: #f0f0f0;
+            color: #666;
+            margin-left: 12px;
+        }
+
+        .message-content {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            max-width: 80%;
+            line-height: 1.6;
+            font-size: 14px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .message-content h3 {
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: inherit;
+        }
+
+        .message-content ul {
+            padding-left: 20px;
+        }
+
+        .message-content li {
+            margin-bottom: 5px;
+        }
+
+        .message-content pre {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+
+        .message-content code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        .input-container {
+            padding: 20px;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+            background: white;
+            align-items: flex-end;
+        }
+
+        .input-field {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            resize: none;
+            min-height: 50px;
+            max-height: 150px;
+            font-family: inherit;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .input-buttons {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .voice-button {
+            width: 50px;
+            height: 50px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .voice-button:hover {
+            border-color: #667eea;
+            background: #f8f9fa;
+            transform: scale(1.05);
+        }
+
+        .voice-button.recording {
+            border-color: #dc3545;
+            background: #fff5f5;
+            animation: pulse 1.5s infinite;
+        }
+
+        .voice-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+            }
+        }
+
+        .send-button {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 100px;
+            height: 50px;
+        }
+
+        .send-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .send-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .recording-indicator {
+            display: none;
+            padding: 10px;
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            margin: 0 20px 10px 20px;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #856404;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .recording-indicator.active {
+            display: flex;
+        }
+
+        .recording-dot {
+            width: 12px;
+            height: 12px;
+            background: #dc3545;
+            border-radius: 50%;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% {
+                opacity: 1;
+            }
+            51%, 100% {
+                opacity: 0.3;
+            }
+        }
+
+        /* 语音播放按钮样式 */
+        .voice-play-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .voice-play-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .voice-play-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .voice-play-button .icon {
+            font-size: 14px;
+        }
+
+        .voice-play-button.loading {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        .voice-play-button.loading .icon::after {
+            content: '...';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+
+        .audio-player {
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        .audio-player audio {
+            width: 100%;
+            height: 30px;
+        }
+
+        .session-info {
+            padding: 10px 20px;
+            background: #f5f5f5;
+            font-size: 12px;
+            color: #666;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .new-session {
+            background: none;
+            border: 1px solid #667eea;
+            color: #667eea;
+            padding: 5px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .new-session:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { color: rgba(0, 0, 0, 0); text-shadow: .25em 0 0 rgba(0, 0, 0, 0), .5em 0 0 rgba(0, 0, 0, 0); }
+            40% { color: white; text-shadow: .25em 0 0 rgba(0, 0, 0, 0), .5em 0 0 rgba(0, 0, 0, 0); }
+            60% { text-shadow: .25em 0 0 white, .5em 0 0 rgba(0, 0, 0, 0); }
+            80%, 100% { text-shadow: .25em 0 0 white, .5em 0 0 white; }
+        }
+
+        .help-section {
+            padding: 15px 20px;
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            margin: 20px;
+            border-radius: 6px;
+        }
+
+        .help-section h4 {
+            color: #856404;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .help-section p {
+            color: #856404;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .help-section code {
+            background: rgba(255, 255, 255, 0.5);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎲 立场魔方</h1>
+            <p>AI赋能的思辨力"健身房" - 在线测试版本</p>
+        </div>
+        
+        <div class="config-section">
+            <div class="config-row">
+                <div class="config-label">API地址：</div>
+                <input 
+                    type="text" 
+                    id="apiUrl" 
+                    class="config-input"
+                    placeholder="输入API服务地址"
+                    value="http://localhost:8000/api/agent/chat"
+                >
+                <button class="config-button" onclick="testConnection()">测试连接</button>
+            </div>
+            <div class="config-row" style="margin-top: 10px;">
+                <div class="config-label">AI音色：</div>
+                <select id="voiceType" class="config-select">
+                    <option value="female">👧 女声（温柔）</option>
+                    <option value="male">👦 男声（温和）</option>
+                    <option value="female_vivi">👩 女声（专业）</option>
+                    <option value="male_dayi">👨 男声（沉稳）</option>
+                </select>
+                <div class="config-label" style="min-width: auto; font-size: 12px; color: #666;">
+                    AI回复将使用此音色
+                </div>
+            </div>
+            <div id="statusMessage" class="status-message"></div>
+            
+            <div class="help-section">
+                <h4>💡 配置说明</h4>
+                <p>
+                    如果API地址是 <code>localhost</code>，需要在同一台电脑上运行服务。
+                    要让朋友远程访问，请部署到云服务器或使用内网穿透工具。
+                </p>
+                <p style="margin-top: 8px;">
+                    <strong>🎤 语音功能：</strong>支持语音输入和语音回复。点击麦克风按钮可以语音输入，AI回复后会自动生成语音。
+                </p>
+            </div>
+        </div>
+        
+        <div class="session-info">
+            <span>当前会话ID: <strong id="sessionId">-</strong></span>
+            <button class="new-session" onclick="newSession()">新建会话</button>
+        </div>
+        
+        <div class="chat-container" id="chatContainer">
+            <div class="message ai">
+                <div class="message-avatar">🤖</div>
+                <div class="message-content">
+                    <h3>👋 欢迎来到立场魔方！</h3>
+                    <p>我是你的思辨训练助手，帮助你提升批判性思维和多元视角理解能力。</p>
+                    <br>
+                    <p><strong>📋 使用步骤：</strong></p>
+                    <ol style="margin-left: 20px;">
+                        <li>在上方配置正确的API地址</li>
+                        <li>点击"测试连接"确认服务可用</li>
+                        <li>输入一个议题开始训练</li>
+                    </ol>
+                    <br>
+                    <p><strong>🎯 你可以：</strong></p>
+                    <ul>
+                        <li>📝 输入一个议题，让我帮你分析多角度观点</li>
+                        <li>🎭 参与角色扮演攻防演练</li>
+                        <li>📊 获得即时的能力反馈和成长建议</li>
+                        <li>🏆 赚取积分和数字徽章</li>
+                    </ul>
+                    <br>
+                    <p><strong>✨ 试试这些议题：</strong></p>
+                    <ul>
+                        <li>人工智能是否应该用于学校教育评分？</li>
+                        <li>是否应该取消高考？</li>
+                        <li>社交媒体对青少年是利大于弊吗？</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="loading" id="loading">AI正在思考</div>
+        
+        <div class="input-container">
+            <textarea 
+                class="input-field" 
+                id="messageInput" 
+                placeholder="输入你的议题或观点...或使用🎤语音输入"
+                rows="2"
+                onkeydown="handleKeyDown(event)"
+            ></textarea>
+            <div class="input-buttons">
+                <button 
+                    class="voice-button" 
+                    id="voiceButton" 
+                    onclick="toggleRecording()"
+                    title="点击开始/停止录音"
+                >🎤</button>
+                <button class="send-button" id="sendButton" onclick="sendMessage()">发送</button>
+            </div>
+        </div>
+        
+        <div class="recording-indicator" id="recordingIndicator">
+            <div class="recording-dot"></div>
+            <span>正在录音... 再次点击麦克风按钮停止</span>
+        </div>
+    </div>
+
+    <script>
+        let API_URL = localStorage.getItem('debate_api_url') || 'http://localhost:8000/api/agent/chat';
+        let sessionId = generateSessionId();
+        let isProcessing = false;
+        
+        // 语音录制相关变量
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let isRecording = false;
+
+        // 初始化API地址
+        document.getElementById('apiUrl').value = API_URL;
+
+        function generateSessionId() {
+            return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        function newSession() {
+            sessionId = generateSessionId();
+            document.getElementById('sessionId').textContent = sessionId;
+            document.getElementById('chatContainer').innerHTML = `
+                <div class="message ai">
+                    <div class="message-avatar">🤖</div>
+                    <div class="message-content">
+                        <h3>👋 欢迎来到立场魔方！</h3>
+                        <p>我是你的思辨训练助手，帮助你提升批判性思维和多元视角理解能力。</p>
+                        <br>
+                        <p><strong>📋 使用步骤：</strong></p>
+                        <ol style="margin-left: 20px;">
+                            <li>在上方配置正确的API地址</li>
+                            <li>点击"测试连接"确认服务可用</li>
+                            <li>输入一个议题开始训练</li>
+                        </ol>
+                        <br>
+                        <p><strong>🎯 你可以：</strong></p>
+                        <ul>
+                            <li>📝 输入一个议题，让我帮你分析多角度观点</li>
+                            <li>🎭 参与角色扮演攻防演练</li>
+                            <li>📊 获得即时的能力反馈和成长建议</li>
+                            <li>🏆 赚取积分和数字徽章</li>
+                        </ul>
+                        <br>
+                        <p><strong>✨ 试试这些议题：</strong></p>
+                        <ul>
+                            <li>人工智能是否应该用于学校教育评分？</li>
+                            <li>是否应该取消高考？</li>
+                            <li>社交媒体对青少年是利大于弊吗？</li>
+                        </ul>
+                    </div>
+                </div>
+            `;
+        }
+
+        function testConnection() {
+            const apiUrl = document.getElementById('apiUrl').value.trim();
+            const statusMessage = document.getElementById('statusMessage');
+            
+            if (!apiUrl) {
+                statusMessage.className = 'status-message error';
+                statusMessage.textContent = '❌ 请输入API地址';
+                return;
+            }
+            
+            statusMessage.className = 'status-message info';
+            statusMessage.textContent = '⏳ 正在测试连接...';
+            
+            // 保存API地址
+            API_URL = apiUrl;
+            localStorage.setItem('debate_api_url', apiUrl);
+            
+            // 发送测试请求
+            fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    session_id: 'test_connection',
+                    message: '你好，请简单介绍一下自己。'
+                })
+            })
+            .then(response => {
+                if (response.ok) {
+                    statusMessage.className = 'status-message success';
+                    statusMessage.textContent = '✅ 连接成功！API服务正常工作。';
+                    return response.json();
+                } else {
+                    statusMessage.className = 'status-message error';
+                    statusMessage.textContent = '❌ 连接失败：HTTP ' + response.status;
+                    throw new Error('HTTP ' + response.status);
+                }
+            })
+            .then(data => {
+                console.log('测试响应:', data);
+            })
+            .catch(error => {
+                statusMessage.className = 'status-message error';
+                statusMessage.textContent = '❌ 连接失败：' + error.message;
+                console.error('连接测试错误:', error);
+            });
+        }
+
+        function handleKeyDown(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function addMessage(content, isUser = false) {
+            const chatContainer = document.getElementById('chatContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'ai'}`;
+            
+            messageDiv.innerHTML = `
+                <div class="message-avatar">${isUser ? '👤' : '🤖'}</div>
+                <div class="message-content">${content}</div>
+            `;
+            
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message || isProcessing) return;
+            
+            // 显示用户消息
+            addMessage(formatMessage(message), true);
+            input.value = '';
+            
+            // 显示加载状态
+            isProcessing = true;
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('sendButton').disabled = true;
+            
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        session_id: sessionId,
+                        message: message,
+                        voice_type: document.getElementById('voiceType').value
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // 显示AI回复
+                const aiMessage = data.content || JSON.stringify(data);
+                const messageElement = addMessageWithId(formatMessage(aiMessage), false);
+                
+                // 如果返回了语音URL，添加播放按钮
+                if (data.audio_url) {
+                    addVoiceButton(messageElement, data.audio_url);
+                } else {
+                    // 如果没有返回语音URL，尝试生成语音
+                    await generateAndAddVoice(messageElement, aiMessage);
+                }
+                
+            } catch (error) {
+                addMessage(`❌ 连接错误: ${error.message}<br><br>请检查：<br>
+                    1. API地址是否正确<br>
+                    2. HTTP服务是否已启动<br>
+                    3. 网络连接是否正常<br><br>
+                    <strong>启动命令：</strong><br>
+                    <code>bash scripts/http_run.sh -p 8000</code>`, false);
+            } finally {
+                isProcessing = false;
+                document.getElementById('loading').classList.remove('active');
+                document.getElementById('sendButton').disabled = false;
+            }
+        }
+
+        // 添加带ID的消息，返回消息元素
+        function addMessageWithId(content, isUser = false) {
+            const chatContainer = document.getElementById('chatContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'ai'}`;
+            messageDiv.id = `msg_${Date.now()}`;
+            
+            messageDiv.innerHTML = `
+                <div class="message-avatar">${isUser ? '👤' : '🤖'}</div>
+                <div class="message-content">${content}</div>
+            `;
+            
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            
+            return messageDiv;
+        }
+
+        // 添加语音播放按钮
+        function addVoiceButton(messageElement, audioUrl) {
+            const contentDiv = messageElement.querySelector('.message-content');
+            const voiceButton = document.createElement('button');
+            voiceButton.className = 'voice-play-button';
+            voiceButton.innerHTML = `<span class="icon">🔊</span> 播放语音`;
+            voiceButton.onclick = () => playVoice(audioUrl, voiceButton);
+            contentDiv.appendChild(voiceButton);
+        }
+
+        // 生成并添加语音
+        async function generateAndAddVoice(messageElement, text) {
+            const contentDiv = messageElement.querySelector('.message-content');
+            
+            // 创建语音按钮（加载状态）
+            const voiceButton = document.createElement('button');
+            voiceButton.className = 'voice-play-button loading';
+            voiceButton.innerHTML = `<span class="icon">🔊</span> 生成语音中`;
+            contentDiv.appendChild(voiceButton);
+            
+            try {
+                // 调用语音合成API
+                const voiceApiUrl = API_URL.replace('/api/agent/chat', '/api/voice/synthesize');
+                const voiceType = document.getElementById('voiceType').value;
+                
+                const response = await fetch(voiceApiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        text: text,
+                        voice_type: voiceType,
+                        session_id: sessionId
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.success && data.audio_url) {
+                    // 更新按钮为可播放状态
+                    voiceButton.className = 'voice-play-button';
+                    voiceButton.innerHTML = `<span class="icon">🔊</span> 播放语音`;
+                    voiceButton.onclick = () => playVoice(data.audio_url, voiceButton);
+                } else {
+                    throw new Error(data.error || '语音生成失败');
+                }
+                
+            } catch (error) {
+                console.error('语音生成错误:', error);
+                voiceButton.style.display = 'none'; // 隐藏按钮
+            }
+        }
+
+        // 播放语音
+        function playVoice(audioUrl, button) {
+            // 如果正在播放，停止播放
+            if (window.currentAudio) {
+                window.currentAudio.pause();
+                window.currentAudio.currentTime = 0;
+                window.currentAudio = null;
+            }
+            
+            // 检查是否已经有播放器
+            let audioPlayer = button.nextElementSibling;
+            if (!audioPlayer || !audioPlayer.classList.contains('audio-player')) {
+                // 创建音频播放器
+                audioPlayer = document.createElement('div');
+                audioPlayer.className = 'audio-player';
+                const audio = document.createElement('audio');
+                audio.controls = true;
+                audio.src = audioUrl;
+                audioPlayer.appendChild(audio);
+                button.parentNode.insertBefore(audioPlayer, button.nextSibling);
+                
+                // 监听播放结束
+                audio.onended = () => {
+                    window.currentAudio = null;
+                    button.innerHTML = `<span class="icon">🔊</span> 播放语音`;
+                };
+                
+                // 监听播放开始
+                audio.onplay = () => {
+                    window.currentAudio = audio;
+                    button.innerHTML = `<span class="icon">⏸</span> 暂停播放`;
+                };
+                
+                // 监听播放暂停
+                audio.onpause = () => {
+                    window.currentAudio = null;
+                    button.innerHTML = `<span class="icon">🔊</span> 播放语音`;
+                };
+            }
+            
+            // 播放音频
+            const audio = audioPlayer.querySelector('audio');
+            audio.play();
+        }
+
+        function formatMessage(content) {
+            if (typeof content !== 'string') {
+                content = JSON.stringify(content, null, 2);
+            }
+            
+            // 简单的Markdown格式化
+            let formatted = content
+                .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
+                .replace(/`([^`]+)`/g, '<code>$1</code>')
+                .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+                .replace(/^#{3}\s+(.+)$/gm, '<h4>$1</h4>')
+                .replace(/^#{2}\s+(.+)$/gm, '<h3>$1</h3>')
+                .replace(/^#{1}\s+(.+)$/gm, '<h2>$1</h2>')
+                .replace(/^- (.+)$/gm, '<li>$1</li>')
+            
+            return formatted;
+        }
+
+        // 语音录制功能
+        async function toggleRecording() {
+            const voiceButton = document.getElementById('voiceButton');
+            const recordingIndicator = document.getElementById('recordingIndicator');
+            
+            if (!isRecording) {
+                // 开始录音
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    audioChunks = [];
+                    
+                    mediaRecorder.ondataavailable = (event) => {
+                        audioChunks.push(event.data);
+                    };
+                    
+                    mediaRecorder.onstop = async () => {
+                        // 停止录音后的处理
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                        await processAudio(audioBlob);
+                        
+                        // 关闭麦克风流
+                        stream.getTracks().forEach(track => track.stop());
+                    };
+                    
+                    mediaRecorder.start();
+                    isRecording = true;
+                    
+                    // 更新UI状态
+                    voiceButton.classList.add('recording');
+                    recordingIndicator.classList.add('active');
+                    
+                } catch (error) {
+                    console.error('无法访问麦克风:', error);
+                    alert('无法访问麦克风，请确保已授予麦克风权限。\n错误信息: ' + error.message);
+                }
+            } else {
+                // 停止录音
+                if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                    mediaRecorder.stop();
+                    isRecording = false;
+                    
+                    // 更新UI状态
+                    voiceButton.classList.remove('recording');
+                    recordingIndicator.classList.remove('active');
+                }
+            }
+        }
+
+        async function processAudio(audioBlob) {
+            // 将音频转换为base64
+            const reader = new FileReader();
+            reader.readAsDataURL(audioBlob);
+            
+            reader.onloadend = async () => {
+                const base64Audio = reader.result.split(',')[1]; // 移除data前缀
+                
+                // 发送音频到后端进行识别
+                await transcribeAudio(base64Audio);
+            };
+        }
+
+        async function transcribeAudio(base64Audio) {
+            const voiceApiUrl = API_URL.replace('/api/agent/chat', '/api/voice/transcribe');
+            const inputField = document.getElementById('messageInput');
+            
+            try {
+                // 显示识别中状态
+                const originalPlaceholder = inputField.placeholder;
+                inputField.placeholder = '🎤 正在识别语音...';
+                inputField.disabled = true;
+                
+                const response = await fetch(voiceApiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        audio_data: base64Audio,
+                        session_id: sessionId
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.success && data.text) {
+                    // 将识别的文本填入输入框
+                    inputField.value = data.text;
+                    inputField.focus();
+                } else {
+                    throw new Error(data.error || '语音识别失败');
+                }
+                
+            } catch (error) {
+                console.error('语音识别错误:', error);
+                alert('语音识别失败: ' + error.message + '\n\n请检查后端语音识别服务是否正常启动。');
+            } finally {
+                // 恢复输入框状态
+                inputField.placeholder = '输入你的议题或观点...或使用🎤语音输入';
+                inputField.disabled = false;
+            }
+        }
+                .replace(/(\n<li>.*<\/li>)/g, '<ul>$1</ul>')
+                .replace(/\n/g, '<br>');
+            
+            return formatted;
+        }
+
+        // 初始化会话ID显示
+        document.getElementById('sessionId').textContent = sessionId;
+        
+        // 自动保存API地址
+        document.getElementById('apiUrl').addEventListener('change', function(e) {
+            localStorage.setItem('debate_api_url', e.target.value.trim());
+            API_URL = e.target.value.trim();
+        });
+    </script>
+</body>
+</html>

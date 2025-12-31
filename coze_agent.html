@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coze 智能体对接工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .config-section {
+            padding: 25px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .config-row {
+            margin-bottom: 15px;
+        }
+
+        .config-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .config-label {
+            display: block;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .config-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .config-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .config-input::placeholder {
+            color: #999;
+        }
+
+        .config-input.secret {
+            font-family: 'Courier New', monospace;
+            letter-spacing: 1px;
+        }
+
+        .config-row.grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 600px) {
+            .config-row.grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .config-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .config-button {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+        }
+
+        .config-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .config-button.secondary {
+            background: #6c757d;
+        }
+
+        .config-button.save {
+            background: #28a745;
+        }
+
+        .status-message {
+            margin-top: 15px;
+            padding: 12px 15px;
+            border-radius: 8px;
+            font-size: 13px;
+            display: none;
+        }
+
+        .status-message.success {
+            display: block;
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-message.error {
+            display: block;
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status-message.info {
+            display: block;
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .config-help {
+            margin-top: 20px;
+            padding: 15px;
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #856404;
+            line-height: 1.6;
+        }
+
+        .config-help h4 {
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .config-help code {
+            background: rgba(255, 255, 255, 0.5);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+
+        .session-info {
+            padding: 10px 20px;
+            background: #f5f5f5;
+            font-size: 12px;
+            color: #666;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .new-session {
+            background: none;
+            border: 1px solid #667eea;
+            color: #667eea;
+            padding: 5px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .new-session:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .chat-container {
+            padding: 20px;
+            min-height: 400px;
+            max-height: 600px;
+            overflow-y: auto;
+            background: #fafafa;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: flex-start;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .message.ai .message-avatar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin-right: 12px;
+        }
+
+        .message.user .message-avatar {
+            background: #f0f0f0;
+            color: #666;
+            margin-left: 12px;
+        }
+
+        .message-content {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            max-width: 80%;
+            line-height: 1.6;
+            font-size: 14px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .message-content h3 {
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: inherit;
+        }
+
+        .message-content p {
+            margin-bottom: 10px;
+            line-height: 1.8;
+        }
+
+        .message-content ul, .message-content ol {
+            padding-left: 20px;
+            margin-bottom: 10px;
+        }
+
+        .message-content li {
+            margin-bottom: 5px;
+        }
+
+        .message-content pre {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+
+        .message-content code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        .message.user .message-content code {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { color: rgba(0, 0, 0, 0); text-shadow: .25em 0 0 rgba(0, 0, 0, 0), .5em 0 0 rgba(0, 0, 0, 0); }
+            40% { color: white; text-shadow: .25em 0 0 rgba(0, 0, 0, 0), .5em 0 0 rgba(0, 0, 0, 0); }
+            60% { text-shadow: .25em 0 0 white, .5em 0 0 rgba(0, 0, 0, 0); }
+            80%, 100% { text-shadow: .25em 0 0 white, .5em 0 0 white; }
+        }
+
+        .input-container {
+            padding: 20px;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+            background: white;
+            align-items: flex-end;
+        }
+
+        .input-field {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            resize: none;
+            min-height: 50px;
+            max-height: 150px;
+            font-family: inherit;
+            line-height: 1.6;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .input-field:disabled {
+            background: #f5f5f5;
+            cursor: not-allowed;
+        }
+
+        .send-button {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 100px;
+            height: 50px;
+        }
+
+        .send-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .send-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .welcome-message {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
+
+        .welcome-message h2 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .welcome-message p {
+            font-size: 16px;
+            line-height: 1.8;
+            margin-bottom: 10px;
+        }
+
+        .welcome-message .steps {
+            text-align: left;
+            max-width: 500px;
+            margin: 30px auto;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .welcome-message .steps ol {
+            margin-left: 20px;
+        }
+
+        .welcome-message .steps li {
+            margin-bottom: 12px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 Coze 智能体对接工具</h1>
+            <p>直接连接 Coze 平台的任意智能体，无需额外开发</p>
+        </div>
+
+        <div class="config-section">
+            <div class="config-row">
+                <label class="config-label">Coze API 接口地址：</label>
+                <input
+                    type="text"
+                    id="apiUrl"
+                    class="config-input"
+                    placeholder="例如：https://api.coze.com/v3/chat"
+                    value="https://api.coze.com/v3/chat"
+                >
+            </div>
+
+            <div class="config-row">
+                <label class="config-label">Bearer Token（访问令牌）：</label>
+                <input
+                    type="password"
+                    id="bearerToken"
+                    class="config-input secret"
+                    placeholder="输入你的 Coze API Token（pat_xxxx）"
+                >
+            </div>
+
+            <div class="config-row">
+                <label class="config-label">智能体 ID（Bot ID）：</label>
+                <input
+                    type="text"
+                    id="botId"
+                    class="config-input"
+                    placeholder="输入智能体的 ID（例如：738123456789）"
+                >
+            </div>
+
+            <div class="config-buttons">
+                <button class="config-button save" onclick="saveConfig()">💾 保存配置</button>
+                <button class="config-button" onclick="testConnection()">🔍 测试连接</button>
+                <button class="config-button secondary" onclick="clearConfig()">🗑️ 清除配置</button>
+            </div>
+
+            <div id="statusMessage" class="status-message"></div>
+
+            <div class="config-help">
+                <h4>📖 使用说明</h4>
+                <p><strong>获取方式：</strong></p>
+                <ol>
+                    <li>访问 <a href="https://www.coze.com" target="_blank" style="color: #667eea;">Coze 官网</a> 并登录</li>
+                    <li>进入你的智能体，点击"发布"或"开发"</li>
+                    <li>在 API 配置中获取 <code>Bot ID</code> 和 <code>Access Token</code></li>
+                    <li>填写到上方配置区域，点击"测试连接"</li>
+                </ol>
+                <p style="margin-top: 10px;"><strong>注意：</strong>Bearer Token 是敏感信息，请妥善保管，不要分享给他人。</p>
+                <p style="margin-top: 15px;"><strong>📚 相关文档：</strong></p>
+                <ul style="margin-left: 20px;">
+                    <li><a href="COZE_AGENT_GUIDE.md" target="_blank" style="color: #667eea;">详细使用指南</a></li>
+                    <li><a href="README.md" target="_blank" style="color: #667eea;">网页使用说明</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="session-info" id="sessionInfo" style="display: none;">
+            <span>会话ID: <strong id="conversationId">-</strong></span>
+            <button class="new-session" onclick="newConversation()">新建会话</button>
+        </div>
+
+        <div class="chat-container" id="chatContainer">
+            <div class="welcome-message">
+                <h2>👋 欢迎使用 Coze 智能体对接工具</h2>
+                <p>这是一个通用的 Coze 智能体对接工具，可以连接 Coze 平台上的任意智能体。</p>
+
+                <div class="steps">
+                    <strong>快速开始：</strong>
+                    <ol>
+                        <li>在上方配置区域填写 Coze API 地址</li>
+                        <li>输入你的 Bearer Token（访问令牌）</li>
+                        <li>输入智能体 ID（Bot ID）</li>
+                        <li>点击"测试连接"验证配置</li>
+                        <li>点击"保存配置"以便下次使用</li>
+                        <li>在下方输入框中发送消息开始对话</li>
+                    </ol>
+                </div>
+
+                <p>准备好后，填写配置信息并开始对话吧！🚀</p>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">AI 正在回复</div>
+
+        <div class="input-container">
+            <textarea
+                class="input-field"
+                id="messageInput"
+                placeholder="输入消息...（确保已配置 API、Token 和 Bot ID）"
+                rows="2"
+                onkeydown="handleKeyDown(event)"
+                disabled
+            ></textarea>
+            <button class="send-button" id="sendButton" onclick="sendMessage()" disabled>发送</button>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let apiUrl = localStorage.getItem('coze_api_url') || 'https://api.coze.com/v3/chat';
+        let bearerToken = localStorage.getItem('coze_bearer_token') || '';
+        let botId = localStorage.getItem('coze_bot_id') || '';
+        let conversationId = null;
+        let isProcessing = false;
+
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', () => {
+            // 加载保存的配置
+            if (apiUrl) document.getElementById('apiUrl').value = apiUrl;
+            if (bearerToken) document.getElementById('bearerToken').value = bearerToken;
+            if (botId) document.getElementById('botId').value = botId;
+
+            // 检查配置完整性
+            checkConfigComplete();
+        });
+
+        // 检查配置是否完整
+        function checkConfigComplete() {
+            const token = document.getElementById('bearerToken').value.trim();
+            const bot = document.getElementById('botId').value.trim();
+            const inputField = document.getElementById('messageInput');
+            const sendButton = document.getElementById('sendButton');
+
+            if (token && bot) {
+                inputField.disabled = false;
+                sendButton.disabled = false;
+                inputField.placeholder = '输入消息开始对话...';
+            } else {
+                inputField.disabled = true;
+                sendButton.disabled = true;
+                inputField.placeholder = '请先配置 Bearer Token 和 Bot ID';
+            }
+        }
+
+        // 保存配置
+        function saveConfig() {
+            const newApiUrl = document.getElementById('apiUrl').value.trim();
+            const newToken = document.getElementById('bearerToken').value.trim();
+            const newBotId = document.getElementById('botId').value.trim();
+
+            if (!newToken || !newBotId) {
+                showStatus('error', '❌ Bearer Token 和 Bot ID 不能为空');
+                return;
+            }
+
+            // 保存到 localStorage
+            localStorage.setItem('coze_api_url', newApiUrl);
+            localStorage.setItem('coze_bearer_token', newToken);
+            localStorage.setItem('coze_bot_id', newBotId);
+
+            apiUrl = newApiUrl;
+            bearerToken = newToken;
+            botId = newBotId;
+
+            showStatus('success', '✅ 配置已保存');
+            checkConfigComplete();
+        }
+
+        // 清除配置
+        function clearConfig() {
+            if (confirm('确定要清除所有配置信息吗？')) {
+                localStorage.removeItem('coze_api_url');
+                localStorage.removeItem('coze_bearer_token');
+                localStorage.removeItem('coze_bot_id');
+
+                document.getElementById('apiUrl').value = 'https://api.coze.com/v3/chat';
+                document.getElementById('bearerToken').value = '';
+                document.getElementById('botId').value = '';
+
+                apiUrl = 'https://api.coze.com/v3/chat';
+                bearerToken = '';
+                botId = '';
+
+                showStatus('info', '🗑️ 配置已清除');
+                checkConfigComplete();
+            }
+        }
+
+        // 测试连接
+        async function testConnection() {
+            const testApiUrl = document.getElementById('apiUrl').value.trim();
+            const testToken = document.getElementById('bearerToken').value.trim();
+            const testBotId = document.getElementById('botId').value.trim();
+
+            if (!testApiUrl || !testToken || !testBotId) {
+                showStatus('error', '❌ 请先填写完整的配置信息');
+                return;
+            }
+
+            showStatus('info', '⏳ 正在测试连接...');
+
+            try {
+                const response = await fetch(testApiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${testToken}`
+                    },
+                    body: JSON.stringify({
+                        bot_id: testBotId,
+                        user: 'test_user',
+                        query: '你好，请简单介绍一下自己。',
+                        stream: false
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+
+                    if (data.code === 0) {
+                        showStatus('success', '✅ 连接成功！智能体配置正确。');
+                        // 更新会话ID
+                        if (data.data && data.data.conversation_id) {
+                            conversationId = data.data.conversation_id;
+                            document.getElementById('conversationId').textContent = conversationId;
+                            document.getElementById('sessionInfo').style.display = 'flex';
+                        }
+                    } else {
+                        showStatus('error', `❌ 连接失败：${data.msg || '未知错误'}`);
+                    }
+                } else {
+                    const errorData = await response.json().catch(() => ({}));
+                    showStatus('error', `❌ 连接失败：HTTP ${response.status} - ${errorData.msg || response.statusText}`);
+                }
+            } catch (error) {
+                showStatus('error', `❌ 连接失败：${error.message}`);
+                console.error('连接测试错误:', error);
+            }
+        }
+
+        // 显示状态消息
+        function showStatus(type, message) {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.className = `status-message ${type}`;
+            statusDiv.textContent = message;
+
+            // 3秒后自动隐藏成功消息
+            if (type === 'success') {
+                setTimeout(() => {
+                    statusDiv.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        // 新建会话
+        function newConversation() {
+            conversationId = null;
+            document.getElementById('conversationId').textContent = '-';
+
+            // 清空聊天记录
+            const chatContainer = document.getElementById('chatContainer');
+            chatContainer.innerHTML = `
+                <div class="welcome-message">
+                    <h2>👋 新会话已创建</h2>
+                    <p>已创建新的对话会话，可以开始新的对话了。</p>
+                    <p>准备好后，在下方输入框中发送消息开始对话！🚀</p>
+                </div>
+            `;
+        }
+
+        // 处理键盘事件
+        function handleKeyDown(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        // 添加消息到聊天界面
+        function addMessage(content, isUser = false) {
+            const chatContainer = document.getElementById('chatContainer');
+
+            // 移除欢迎消息
+            const welcomeMessage = chatContainer.querySelector('.welcome-message');
+            if (welcomeMessage) {
+                welcomeMessage.remove();
+            }
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'ai'}`;
+
+            messageDiv.innerHTML = `
+                <div class="message-avatar">${isUser ? '👤' : '🤖'}</div>
+                <div class="message-content">${formatMessage(content)}</div>
+            `;
+
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // 格式化消息
+        function formatMessage(content) {
+            if (typeof content !== 'string') {
+                content = JSON.stringify(content, null, 2);
+            }
+
+            // 简单的 Markdown 格式化
+            let formatted = content
+                .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
+                .replace(/`([^`]+)`/g, '<code>$1</code>')
+                .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+                .replace(/^#{3}\s+(.+)$/gm, '<h4>$1</h4>')
+                .replace(/^#{2}\s+(.+)$/gm, '<h3>$1</h3>')
+                .replace(/^#{1}\s+(.+)$/gm, '<h2>$1</h2>')
+                .replace(/^- (.+)$/gm, '<li>$1</li>')
+                .replace(/(\n<li>.*<\/li>)/g, '<ul>$1</ul>')
+                .replace(/\n/g, '<br>');
+
+            return formatted;
+        }
+
+        // 发送消息
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+
+            if (!message || isProcessing) return;
+
+            // 显示用户消息
+            addMessage(message, true);
+            input.value = '';
+
+            // 显示加载状态
+            isProcessing = true;
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('sendButton').disabled = true;
+            document.getElementById('messageInput').disabled = true;
+
+            try {
+                // 获取当前配置
+                const currentApiUrl = document.getElementById('apiUrl').value.trim();
+                const currentToken = document.getElementById('bearerToken').value.trim();
+                const currentBotId = document.getElementById('botId').value.trim();
+
+                // 构建请求体
+                const requestBody = {
+                    bot_id: currentBotId,
+                    user: 'user_' + Date.now(),
+                    query: message,
+                    stream: false
+                };
+
+                // 如果有会话ID，添加到请求中
+                if (conversationId) {
+                    requestBody.conversation_id = conversationId;
+                }
+
+                const response = await fetch(currentApiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${currentToken}`
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (data.code === 0) {
+                    // 更新会话ID
+                    if (data.data && data.data.conversation_id) {
+                        conversationId = data.data.conversation_id;
+                        document.getElementById('conversationId').textContent = conversationId;
+                        document.getElementById('sessionInfo').style.display = 'flex';
+                    }
+
+                    // 显示AI回复
+                    const aiMessage = data.data && data.data.answer ? data.data.answer : JSON.stringify(data);
+                    addMessage(aiMessage, false);
+                } else {
+                    throw new Error(data.msg || '智能体返回错误');
+                }
+
+            } catch (error) {
+                addMessage(`❌ 请求失败: ${error.message}<br><br>请检查：<br>
+                    1. API 地址是否正确<br>
+                    2. Bearer Token 是否有效<br>
+                    3. Bot ID 是否正确<br>
+                    4. 网络连接是否正常<br><br>
+                    <strong>建议：</strong><br>
+                    点击"测试连接"按钮验证配置是否正确。`, false);
+                console.error('发送消息错误:', error);
+            } finally {
+                isProcessing = false;
+                document.getElementById('loading').classList.remove('active');
+                document.getElementById('sendButton').disabled = false;
+                document.getElementById('messageInput').disabled = false;
+                document.getElementById('messageInput').focus();
+            }
+        }
+    </script>
+</body>
+</html>
